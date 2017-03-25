@@ -1,0 +1,4 @@
+dist
+npm-*
+node_modules
+src/*.js

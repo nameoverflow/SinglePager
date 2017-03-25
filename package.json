@@ -1,0 +1,14 @@
+{
+  "name": "single-pager",
+  "version": "1.0.0",
+  "description": "",
+  "main": "SinglePager.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-preset-es2015": "^6.24.0"
+  }
+}
