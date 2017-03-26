@@ -1,4 +1,17 @@
-(function (window) {
+
+// Module manager declartions
+interface AMDDefine extends Function {
+  amd: Function
+}
+declare const exports: object
+declare const module: { exports: object }
+declare const define: AMDDefine
+
+(function (global) {
+
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = Pager :
+	typeof define === 'function' && define.amd ? define(() => Pager) : (global['Pager'] = Pager)
+
   interface PagerConfig {
     shellMark?: string,     // The mark attribute to replace content
     disableMark?: string,   // Attribute mark links not be load
@@ -12,20 +25,22 @@
     triggerTime: 100,
     historyToSave: 3
   }
-
   /**
    * The Pager class
    */
   class Pager {
     private shell: Element
-    private before: Function[] = []
-    private after: Function[] = []
+    private before: IterableIterator<any>[] = []
+    private after: IterableIterator<any>[] = []
     private curRequest: PagerRequest
     private config: PagerConfig
     private historyList: string[] = []
     private history: Map<string, PageHistory> = new Map()
 
-    constructor(config: PagerConfig = {}) {
+    // constructor();
+    constructor(config: string)
+    constructor(config: PagerConfig)
+    constructor(config = {}) {
 
       /**
        * Check if the element that mouse overed is or is child of `<a>`,
@@ -65,6 +80,7 @@
         doc.documentElement.innerHTML = HTMLText
         const shell = doc.querySelector(`[${this.config.shellMark}]`)
         this.shell.innerHTML = shell.innerHTML
+        window.scrollTo(0, 0)
       }
 
 
@@ -78,8 +94,7 @@
           if (linkNode === this.curRequest.source) {
             return
           }
-          this.curRequest.cancel()
-          this.curRequest = null
+          this._cancelRequest()
         }
 
         const req = new PagerRequest(linkNode)
@@ -110,6 +125,7 @@
       }
 
       window.onpopstate = (e: PopStateEvent) => {
+        this._cancelRequest()
         const href = window.location.href
         const st = this.history.get(href)
         if (!st) {
@@ -120,7 +136,14 @@
         this.shell.innerHTML = st.content
       }
 
-      this.config = Object.assign({}, defaultConfig, config)
+      this.config = Object.assign({}, defaultConfig)
+
+      if (typeof config === 'string') {
+        this.config.shellMark = config
+      } else {
+        Object.assign(this.config, config)
+      }
+
 
       const shell = document.querySelector(`[${this.config.shellMark}]`)
       this.shell = shell || null
@@ -131,7 +154,14 @@
       document.addEventListener('click', handleClick)
     }
 
-    public mount(el: Element): void {
+    private _cancelRequest(): void {
+      this.curRequest && this.curRequest.cancel()
+      this.curRequest = null
+    }
+
+    public mount(el: string): void
+    public mount(el: Element): void
+    public mount(el): void {
       if (typeof el === 'string') {
         this.shell = document.querySelector(el)
       } else {
@@ -193,7 +223,7 @@
     }
     return <HTMLAnchorElement>el
   }
+  // window['Pager'] = Pager
 
-  window['Pager'] = Pager
-})(window)
+})(this)
 
