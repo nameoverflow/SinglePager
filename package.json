@@ -3,9 +3,13 @@
   "version": "1.0.0",
   "description": "",
   "main": "dist/singlepager.js",
+  "repository": "https://github.com/nameoverflow/SinglePager",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "nameoverflow",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^2.2.1"
+  }
 }

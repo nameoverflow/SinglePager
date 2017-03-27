@@ -1,6 +1,14 @@
-(function (global) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = Pager :
-        typeof define === 'function' && define.amd ? define(() => Pager) : (global['Pager'] = Pager);
+(function (factory) {
+    if (typeof module === "object" && typeof module.exports === "object") {
+        var v = factory(require, exports);
+        if (v !== undefined) module.exports = v;
+    }
+    else if (typeof define === "function" && define.amd) {
+        define(["require", "exports"], factory);
+    }
+})(function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     const defaultConfig = {
         shellMark: 'data-single-pager',
         disableMark: 'data-pager-disabled',
@@ -16,33 +24,6 @@
             this.after = [];
             this.historyList = [];
             this.history = new Map();
-            /**
-             * Check if the element that mouse overed is or is child of `<a>`,
-             * and its `href` should be load
-             * @param el
-             */
-            const isLegalLink = (el) => {
-                const loc = window.location;
-                return el
-                    && el.nodeName === 'A'
-                    && !el.getAttribute(`${this.config.disableMark}`)
-                    && el.hostname === loc.hostname
-                    && el.port === loc.port
-                    && el.pathname !== loc.pathname;
-            };
-            const addHistory = (href) => {
-                if (!this.history.has(href)) {
-                    this.historyList.push(href);
-                }
-                this.history.set(href, {
-                    title: window.document.title,
-                    content: this.shell.innerHTML
-                });
-                if (this.historyList.length > this.config.historyToSave) {
-                    const first = this.historyList.shift();
-                    this.history.delete(first);
-                }
-            };
             /**
              * Change page
              * @param href the href URL
@@ -77,7 +58,7 @@
                 const href = linkNode.href;
                 const cont = text => {
                     switchTo(text);
-                    addHistory(href);
+                    this._addHistory(href);
                     history.pushState(null, null, href);
                 };
                 if (this.curRequest && linkNode === this.curRequest.source) {
@@ -108,7 +89,7 @@
             }
             const shell = document.querySelector(`[${this.config.shellMark}]`);
             this.shell = shell || null;
-            addHistory(window.location.href);
+            this._addHistory(window.location.href);
             document.addEventListener('mouseover', handleMouseOver);
             // document.addEventListener('mouseout', clearPreload)
             document.addEventListener('click', handleClick);
@@ -116,6 +97,19 @@
         _cancelRequest() {
             this.curRequest && this.curRequest.cancel();
             this.curRequest = null;
+        }
+        _addHistory(href) {
+            if (!this.history.has(href)) {
+                this.historyList.push(href);
+            }
+            this.history.set(href, {
+                title: window.document.title,
+                content: this.shell.innerHTML
+            });
+            if (this.historyList.length > this.config.historyToSave) {
+                const first = this.historyList.shift();
+                this.history.delete(first);
+            }
         }
         mount(el) {
             if (typeof el === 'string') {
@@ -126,6 +120,7 @@
             }
         }
     }
+    exports.default = Pager;
     class PagerRequest {
         constructor(link) {
             this.state = 0;
@@ -160,11 +155,24 @@
             }
         }
     }
+    /**
+     * Check if the element that mouse overed is or is child of `<a>`,
+     * and its `href` should be load
+     * @param el
+     */
+    function isLegalLink(el) {
+        const loc = window.location;
+        return el
+            && el.nodeName === 'A'
+            && !el.getAttribute(`${this.config.disableMark}`)
+            && el.hostname === loc.hostname
+            && el.port === loc.port
+            && el.pathname !== loc.pathname;
+    }
     function getIfLink(el) {
         while (el && (el.nodeName != 'A' || !el.getAttribute('href'))) {
             el = el.parentElement;
         }
         return el;
     }
-    // window['Pager'] = Pager
-})(this);
+});
