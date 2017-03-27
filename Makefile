@@ -1,3 +1,5 @@
-dist: src/singlepager.ts
-	tsc src/singlepager.ts --target ES2015 --outFile dist/singlepager.js -m umd
+dist: compile
+	node_modules/.bin/rollup -c
 
+compile: src/singlepager.ts
+	node_modules/.bin/tsc src/singlepager.ts --target ES2015

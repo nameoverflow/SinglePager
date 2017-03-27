@@ -42,7 +42,7 @@ export default class Pager {
 
     const handleMouseOver = (e: MouseEvent) => {
       const linkNode = getIfLink(<Element>e.target)
-      if (!isLegalLink(<HTMLAnchorElement>linkNode)) {
+      if (!this._isLegalLink(<HTMLAnchorElement>linkNode)) {
         return
       }
 
@@ -130,6 +130,20 @@ export default class Pager {
     }
   }
 
+  /**
+   * Check if the element that mouse overed is or is child of `<a>`,
+   * and its `href` should be load
+   * @param el 
+   */
+  private _isLegalLink(el: HTMLAnchorElement): boolean {
+    const loc = window.location
+    return el
+      && el.nodeName === 'A'
+      && !el.getAttribute(`${this.config.disableMark}`)
+      && el.hostname === loc.hostname
+      && el.port === loc.port
+      && el.pathname !== loc.pathname
+  }
 
   public mount(el: string): void
   public mount(el: Element): void
@@ -188,20 +202,6 @@ class PagerRequest {
   }
 }
 
-/**
- * Check if the element that mouse overed is or is child of `<a>`,
- * and its `href` should be load
- * @param el 
- */
-function isLegalLink(el: HTMLAnchorElement): boolean {
-  const loc = window.location
-  return el
-    && el.nodeName === 'A'
-    && !el.getAttribute(`${this.config.disableMark}`)
-    && el.hostname === loc.hostname
-    && el.port === loc.port
-    && el.pathname !== loc.pathname
-}
 
 
 

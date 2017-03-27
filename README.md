@@ -39,6 +39,16 @@ const defaultConfig = <PagerConfig>{
 }
 ```
 
+## Build
+
+Run `make` to dist, `make comile` to compile typescript (ts 2.2.1+ required)
+
+## Test
+
+Python 3.4+ required
+
+Run `python -m http.server` then open `http://127.0.0.1:8000/test/test.html`
+
 ## TODO
 
 - hookable `<script>` tag
