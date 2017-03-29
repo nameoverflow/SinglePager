@@ -7,7 +7,9 @@
   "scripts": {
     "test": "python -m http.server",
     "build": "make compile",
-    "dist": "make"
+    "dist": "make",
+    "compile": "tsc src/singlepager.ts --target ES2015",
+    "rollup": "rollup -c"
   },
   "author": "nameoverflow",
   "license": "MIT",

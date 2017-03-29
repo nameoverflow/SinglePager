@@ -7,7 +7,7 @@
 const defaultConfig = {
     shellMark: 'data-single-pager',
     disableMark: 'data-pager-disabled',
-    disableScript: 'data-pager-disabled',
+    ignoreScript: 'data-pager-ignore',
     runBefore: 'data-run-before',
     triggerTime: 100,
     historyToSave: 3
@@ -25,7 +25,7 @@ class Pager {
          * Change page
          * @param href the href URL
          */
-        const switchTo = HTMLText => {
+        const switchTo = (HTMLText, callback = null) => {
             // Create DOM Object from loaded HTML
             const doc = document.implementation.createHTMLDocument('');
             doc.documentElement.innerHTML = HTMLText;
@@ -37,13 +37,14 @@ class Pager {
             const runBefore = scripts.filter(el => el.hasAttribute(this.config.runBefore))
                 .map(copyScriptTag);
             const runAfter = scripts.filter(el => !el.hasAttribute(this.config.runBefore)
-                && !el.hasAttribute(this.config.disableScript))
+                && !el.hasAttribute(this.config.ignoreScript))
                 .map(copyScriptTag);
             runBefore.forEach(scr => this.shell.appendChild(scr));
             window.requestAnimationFrame(() => {
                 this.shell.innerHTML = shell.innerHTML;
                 runAfter.forEach(scr => this.shell.appendChild(scr));
                 window.scrollTo(0, 0);
+                callback && callback();
             });
         };
         const handleMouseOver = (e) => {
@@ -68,9 +69,10 @@ class Pager {
             e.preventDefault();
             const href = linkNode.href;
             const cont = text => {
-                switchTo(text);
-                this._addHistory(href);
-                history.pushState(null, null, href);
+                switchTo(text, () => {
+                    this._addHistory(href);
+                    history.pushState(null, null, href);
+                });
             };
             if (this.curRequest && linkNode === this.curRequest.source) {
                 this.curRequest.continue(cont);
