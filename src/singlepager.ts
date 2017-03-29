@@ -1,6 +1,8 @@
 interface PagerConfig {
   shellMark?: string,     // The mark attribute to replace content
   disableMark?: string,   // Attribute mark links not be load
+  ignoreScript?: string,  // Ignore this `<script>` tag
+  runBefore?: string,     // Run script in the `<script>` tag before page switch
   triggerTime?: number,   // Not implement
   historyToSave?: number  // Number of histories to save
 }
@@ -8,9 +10,12 @@ interface PagerConfig {
 const defaultConfig = <PagerConfig>{
   shellMark: 'data-single-pager',
   disableMark: 'data-pager-disabled',
+  ignoreScript: 'data-pager-ignore',
+  runBefore: 'data-run-before',
   triggerTime: 100,
   historyToSave: 3
 }
+
 /**
  * The Pager class
  */
@@ -32,16 +37,34 @@ export default class Pager {
      * @param href the href URL
      */
     const switchTo = HTMLText => {
+      // Create DOM Object from loaded HTML
       const doc = document.implementation.createHTMLDocument('')
       doc.documentElement.innerHTML = HTMLText
+
+      // Take the specified element
       const shell = doc.querySelector(`[${this.config.shellMark}]`)
-      this.shell.innerHTML = shell.innerHTML
-      window.scrollTo(0, 0)
+
+      const scripts = Array.from(shell.getElementsByTagName('script'))
+      // const runBefore = scripts.filter()
+      scripts.forEach(el => el.remove())
+      
+      const runBefore = scripts.filter(el => el.hasAttribute(this.config.runBefore))
+                               .map(copyScriptTag)
+      const runAfter = scripts.filter(el => !el.hasAttribute(this.config.runBefore)
+                                              && !el.hasAttribute(this.config.ignoreScript))
+                              .map(copyScriptTag)
+
+      runBefore.forEach(scr => this.shell.appendChild(scr))
+      window.requestAnimationFrame(() => {
+        this.shell.innerHTML = shell.innerHTML
+        runAfter.forEach(scr => this.shell.appendChild(scr))
+        window.scrollTo(0, 0)
+      })
     }
 
 
     const handleMouseOver = (e: MouseEvent) => {
-      const linkNode = getIfLink(<Element>e.target)
+      const linkNode = this._getIfLink(<Element>e.target)
       if (!this._isLegalLink(<HTMLAnchorElement>linkNode)) {
         return
       }
@@ -58,7 +81,7 @@ export default class Pager {
     }
 
     const handleClick = (e: MouseEvent) => {
-      const linkNode = getIfLink(<Element>e.target)
+      const linkNode = this._getIfLink(<Element>e.target)
       if (!linkNode) {
         return
       }
@@ -145,6 +168,17 @@ export default class Pager {
       && el.pathname !== loc.pathname
   }
 
+  private _getIfLink(el: Element): HTMLAnchorElement {
+    while (el && (el.nodeName != 'A' || !el.getAttribute('href'))) {
+      el = el.parentElement
+    }
+    if (this._isLegalLink(<HTMLAnchorElement>el)) {
+      return <HTMLAnchorElement>el
+    }
+    return null
+  }
+
+
   public mount(el: string): void
   public mount(el: Element): void
   public mount(el): void {
@@ -202,12 +236,10 @@ class PagerRequest {
   }
 }
 
-
-
-
-function getIfLink(el: Element): HTMLAnchorElement {
-  while (el && (el.nodeName != 'A' || !el.getAttribute('href'))) {
-    el = el.parentElement
-  }
-  return <HTMLAnchorElement>el
+function copyScriptTag(scr) {
+  const n = document.createElement('script')
+  n.text = scr.text
+  return n
 }
+
+

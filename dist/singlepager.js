@@ -7,6 +7,8 @@
 const defaultConfig = {
     shellMark: 'data-single-pager',
     disableMark: 'data-pager-disabled',
+    disableScript: 'data-pager-disabled',
+    runBefore: 'data-run-before',
     triggerTime: 100,
     historyToSave: 3
 };
@@ -24,14 +26,28 @@ class Pager {
          * @param href the href URL
          */
         const switchTo = HTMLText => {
+            // Create DOM Object from loaded HTML
             const doc = document.implementation.createHTMLDocument('');
             doc.documentElement.innerHTML = HTMLText;
+            // Take the specified element
             const shell = doc.querySelector(`[${this.config.shellMark}]`);
-            this.shell.innerHTML = shell.innerHTML;
-            window.scrollTo(0, 0);
+            const scripts = Array.from(shell.getElementsByTagName('script'));
+            // const runBefore = scripts.filter()
+            scripts.forEach(el => el.remove());
+            const runBefore = scripts.filter(el => el.hasAttribute(this.config.runBefore))
+                .map(copyScriptTag);
+            const runAfter = scripts.filter(el => !el.hasAttribute(this.config.runBefore)
+                && !el.hasAttribute(this.config.disableScript))
+                .map(copyScriptTag);
+            runBefore.forEach(scr => this.shell.appendChild(scr));
+            window.requestAnimationFrame(() => {
+                this.shell.innerHTML = shell.innerHTML;
+                runAfter.forEach(scr => this.shell.appendChild(scr));
+                window.scrollTo(0, 0);
+            });
         };
         const handleMouseOver = (e) => {
-            const linkNode = getIfLink(e.target);
+            const linkNode = this._getIfLink(e.target);
             if (!this._isLegalLink(linkNode)) {
                 return;
             }
@@ -45,7 +61,7 @@ class Pager {
             this.curRequest = req;
         };
         const handleClick = (e) => {
-            const linkNode = getIfLink(e.target);
+            const linkNode = this._getIfLink(e.target);
             if (!linkNode) {
                 return;
             }
@@ -120,6 +136,15 @@ class Pager {
             && el.port === loc.port
             && el.pathname !== loc.pathname;
     }
+    _getIfLink(el) {
+        while (el && (el.nodeName != 'A' || !el.getAttribute('href'))) {
+            el = el.parentElement;
+        }
+        if (this._isLegalLink(el)) {
+            return el;
+        }
+        return null;
+    }
     mount(el) {
         if (typeof el === 'string') {
             this.shell = document.querySelector(el);
@@ -163,11 +188,10 @@ class PagerRequest {
         }
     }
 }
-function getIfLink(el) {
-    while (el && (el.nodeName != 'A' || !el.getAttribute('href'))) {
-        el = el.parentElement;
-    }
-    return el;
+function copyScriptTag(scr) {
+    const n = document.createElement('script');
+    n.text = scr.text;
+    return n;
 }
 
 return Pager;

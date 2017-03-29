@@ -13,6 +13,16 @@
 <div data-single-pager>
   <p>Hello!</p>
   <p>World!</p>
+  <div id="tag"></div>
+  <script>
+    document.getElementById('tag').innerHTML += '<p>Run after mmount</p>'
+  </script>
+  <script data-run-before>
+    alert('Run before mount')
+  </script>
+  <script data-pager-disabled>
+    alert('Do not run this')
+  </script>
 </div>
 <script src="../dist/singlepager.js"></script>
 <script>
