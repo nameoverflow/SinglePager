@@ -83,6 +83,3 @@ Python 3.4+ required
 
 Run `python -m http.server` then open `http://127.0.0.1:8000/test/test.html`
 
-## TODO
-
-- `before` and `after` hooks

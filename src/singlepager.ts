@@ -41,6 +41,8 @@ export default class Pager {
       const doc = document.implementation.createHTMLDocument('')
       doc.documentElement.innerHTML = HTMLText
 
+      const newTitle = doc.title
+
       // Take the specified element
       const shell = doc.querySelector(`[${this.config.shellMark}]`)
 
@@ -62,6 +64,7 @@ export default class Pager {
         this.shell.innerHTML = shell.innerHTML
         runAfter.forEach(scr => this.shell.appendChild(scr))
         window.scrollTo(0, 0)
+        window.document.title = newTitle
         callback && callback()
       })
     }

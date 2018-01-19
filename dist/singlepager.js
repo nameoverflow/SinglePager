@@ -29,6 +29,7 @@ class Pager {
             // Create DOM Object from loaded HTML
             const doc = document.implementation.createHTMLDocument('');
             doc.documentElement.innerHTML = HTMLText;
+            const newTitle = doc.title;
             // Take the specified element
             const shell = doc.querySelector(`[${this.config.shellMark}]`);
             const scripts = Array.from(shell.getElementsByTagName('script'))
@@ -44,6 +45,7 @@ class Pager {
                 this.shell.innerHTML = shell.innerHTML;
                 runAfter.forEach(scr => this.shell.appendChild(scr));
                 window.scrollTo(0, 0);
+                window.document.title = newTitle;
                 callback && callback();
             });
         };
